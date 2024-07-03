@@ -43,18 +43,22 @@ export const google = async (req, res, next) => {
             const generatePassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
             const hasdedPassword = bcryptjs.hashSync(generatePassword, 10)
             const newUser = new User({
-                username: req.body.name.split(' ').join('').toLowerCase() + Math.floor(Math.random() * 100000).toString(),
+                username: req.body.name.split(' ').join('').toLowerCase() + Math.random().toString().slice(-8),
                 email: req.body.email,
                 password: hasdedPassword,
                 profilePicture: req.body.photo,
             })
             await newUser.save()
             const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET)
-            const {password: hasdedPassword2, ...rest} = validUser._doc
+            const {password: hasdedPassword2, ...rest} = newUser._doc
             const expireDate = new Date(Date.now()+3600000)
             res.cookie('access_token', token, {httpOnly: true, expires:expireDate}).status(200).json(rest)
         }
     } catch(error) {
         next(error)
     }
+}
+
+export const signout = (req, res) => {
+    res.clearCookie('access_token').status(200).json('Signout success!')
 }
